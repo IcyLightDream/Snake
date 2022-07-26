@@ -3,3 +3,11 @@
 ################################################################################
 
 /.vs/Snake
+/Snake/x64/Release/Snake.tlog
+/Snake/x64/Release/Snake.log
+/Snake/x64/Release/Snake.exe.recipe
+/x64/Release
+/Snake/Release/Snake.tlog
+/Snake/Release/Snake.exe.recipe
+*.log
+/Release
