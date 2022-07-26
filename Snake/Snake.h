@@ -49,18 +49,25 @@ void hideCursor() {
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursor_info);
 }
 
+void exitGame() {
+	gotoXY(0, 0);
+	system("cls");
+	system("pause");
+	exit(0);
+}
+
 struct Pos {		//pos从0开始.
 	short x, y;
 };
 struct DebugModeSettings {
 	bool HBT;	//蛇头撞蛇身是否算死亡.
-	long long InitTailLength;	//初始蛇长.
+	long long initTailLength;	//初始蛇长.
 };
 struct TestSettings {
-	bool sd;	//游戏玩完后关机
+	bool sd;	//游戏玩完后关机.
 };
 
-const short SPEED_MS[5] = { 0,300,125,50,25 };		//速度对应的值  
-const string SPEED_STR[5] = { "","散步","行走","奔跑","疯狂" };	//必须是两个字
+const short SPEED_MS[5] = { 0,300,125,50,25 };		//速度对应的值.
+const string SPEED_STR[5] = { "","散步","行走","奔跑","疯狂" };	//必须是两个字.
 
-const string VERSION = "1.4.6", TIME = "2022.7.26";
+const string VERSION = "1.4.7", TIME = "2022.7.26";
