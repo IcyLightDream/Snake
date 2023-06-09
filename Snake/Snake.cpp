@@ -558,9 +558,9 @@ void settings() {
 }
 void about() {
 	system("cls");
-	cout << "贪吃蛇 " << VERSION << " by 2345Explorer\n";
+	cout << "贪吃蛇 " << VERSION << " by IcyLightDream\n";
 	cout << "更新时间: " << TIME << endl;
-	cout << "点个Star⑧ QAQ\n仓库地址:https://github.com/2345Explorer/Snake\n";
+	cout << "点个Star⑧ QAQ\n仓库地址:https://github.com/IcyLightDream/Snake\n";
 	cout << "\n好像用 Windows控制台主机 打开有问题, 建议 Windows10 以上使用 Windows终端\n\n";
 	system("pause");
 }
