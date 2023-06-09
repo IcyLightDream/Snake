@@ -1,6 +1,6 @@
 /*
   Snake,a cplusplus game.
-  Copyright (C) 2022  2345Explorer
+  Copyright (C) 2020-2023 IcyLightDream
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ using std::string;
 //蛇的最长长度.
 const int maxSnakeTailLength = 10000;
 
-char HeadC = '#', TailC = '*', FruitC = '0';
+char headC = '#', tailC = '*', fruitC = '0';
 
 void gotoXY(short x, short y) {
 	COORD pos = { x, y };
@@ -50,9 +50,7 @@ void hideCursor() {
 }
 
 void exitGame() {
-	gotoXY(0, 0);
 	system("cls");
-	system("pause");
 	exit(0);
 }
 
@@ -60,14 +58,12 @@ struct Pos {		//pos从0开始.
 	short x, y;
 };
 struct DebugModeSettings {
-	bool by2345Explorer;	//蛇头撞蛇身是否算死亡.
+	bool byIcyLightDream;	//蛇头撞蛇身是否算死亡.
 	long long initTailLength;	//初始蛇长.
-};
-struct TestSettings {
-	bool sd;	//游戏玩完后关机.
 };
 
 const short SPEED_MS[5] = { 0,300,125,50,25 };		//速度对应的值.
-const string SPEED_STR[5] = { "","散步","行走","奔跑","疯狂" };	//必须是两个字.
+const string SPEED_STR[5] = { "","散步","行走","奔跑","?" };
+const short SPEED_STR_SZ[5] = { 0,4,4,4,1 };
 
-const string VERSION = "1.4.7", TIME = "2022.7.26";
+const string VERSION = "1.4.8", TIME = "2023.6.9";

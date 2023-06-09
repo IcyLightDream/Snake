@@ -1,6 +1,6 @@
 /*
   Snake,a cplusplus game.
-  Copyright (C) 2022  2345Explorer
+  Copyright (C) 2020-2023 IcyLightDream
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ using std::string;
 //定义.
 void initFruit();
 void initHead(short ms);
-void printMap();
+void printMap(bool clearScreen);
 void printTips();
 bool move();
 void eatFruit();
@@ -40,24 +40,24 @@ bool getInput(bool& pausing);
 bool game(int speed);
 void startMenu();
 void debugSettings();
-void testSettings();
 short startGameMenu();
 void settings();
 void about();
 Pos head, tail[maxSnakeTailLength], fruit;
 DebugModeSettings debugModeSetting;
-TestSettings testSetting;
 int snakeLength = 0;
 const short dx[4] = { -1,1,0,0 }, dy[4] = { 0,0,-1,1 };
 const short rdx[4] = { 1,-1,0,0 }, rdy[4] = { 0,0,1,-1 };
 int d;		//0前1后2左3右
+
+char map[HIGHT + 2][WIDTH + 2];
 
 int main(int argc, char* argv[], char** env) {
 	srand((unsigned)time(NULL));
 	system("title 贪吃蛇");
 	hideCursor();
 
-	debugModeSetting.by2345Explorer = true;
+	debugModeSetting.byIcyLightDream = true;
 	debugModeSetting.initTailLength = 0;
 	snakeLength = 0;
 	startMenu();
@@ -89,38 +89,37 @@ void initHead(short ms) {		//初始化蛇头.
 	} while (head.x <= a[x] || head.y <= a[x] || head.x >= HIGHT - a[x] || head.y >= WIDTH - a[x]);
 }
 
-void printMap() {		//输出地图.
-	bool mp[HIGHT + 2][WIDTH + 2];
+void printMap(bool clearScr) {	//输出地图.
+	char mp[HIGHT + 2][WIDTH + 2];
 	memset(mp, 0, sizeof(mp));
-	mp[head.x][head.y] = 1;
+	mp[head.x][head.y] = headC;
 	for (int i = 0; i < snakeLength; i++) {
-		mp[tail[i].x][tail[i].y] = 1;
+		mp[tail[i].x][tail[i].y] = tailC;
 	}
 	for (int i = 0; i < HIGHT; i++) {
 		for (int j = 0; j < WIDTH; j++) {
 			if (i == fruit.x && j == fruit.y) {
-				gotoXY(j, i);
-				cout << FruitC;
-			}
-			else if (mp[i][j]) {
-				gotoXY(j, i);
-				if (i == head.x && j == head.y)
-					cout << HeadC;
-				else
-					cout << TailC;
+				mp[i][j]=fruitC;
 			}
 			else if (i == 0 || j == 0 || i == HIGHT - 1 || j == WIDTH - 1) {
-				gotoXY(j, i);
 				if (i == 0 || i == HIGHT - 1) {
-					cout << "-";
+					mp[i][j]='-';
 				}
 				else {
-					cout << "|";
+					mp[i][j] = '|';
 				}
 			}
-			else {
-				gotoXY(j, i);
-				cout << " ";
+			else if(mp[i][j]!=headC&&mp[i][j]!=tailC){
+				mp[i][j] = ' ';
+			}
+		}
+	}
+	for(int i = 0;i < HIGHT;i++) {
+		for(int j = 0;j < WIDTH;j++) {
+			if(clearScr || map[i][j] != mp[i][j]) {
+				gotoXY(j,i);
+				cout << mp[i][j];
+				map[i][j] = mp[i][j];
 			}
 		}
 	}
@@ -134,7 +133,7 @@ void printTips() {
 
 bool move() {		//是否可以移动,如果可以就移动.
 	int thx = head.x + dx[d], thy = head.y + dy[d];
-	if (debugModeSetting.by2345Explorer)
+	if (debugModeSetting.byIcyLightDream)
 		for (int i = 0; i < snakeLength; i++)
 			if (thx == tail[i].x && thy == tail[i].y)
 				return false;
@@ -195,31 +194,33 @@ bool getInput(bool& pausing) {		//获取键盘输入.
 }
 
 bool game(int speed) {		//游戏.
+	system("cls");
 	hideCursor();
 	gotoXY(WIDTH, 0);
 	cout << "       ";
 	d = rand() % 4;	//方向.
 	initHead(SPEED_MS[speed]);
 	initFruit();
+	printMap(true);
 	bool pausing = false;
 	for (int i = 1;i <= debugModeSetting.initTailLength;i++)	eatFruit();
 	while (head.x > 0 && head.y > 0 && head.x < HIGHT - 1 && head.y < WIDTH - 1) {
 		if (pausing) {
-			int a[3][3] = { 10,WIDTH + 2,8,12,WIDTH + 2,12,14,WIDTH + 2,8 }, i = 0;
+			int a[3][3] = { 10,WIDTH + 2,8,12,WIDTH + 2,12,14,WIDTH + 2,8 },i = 0,prei = 0;
 			bool flag = false;
 			while (1) {
 				if (!flag) {
-					system("cls");
-					printMap();
+					printMap(true);
 					gotoXY(WIDTH + 2, 10);
 					cout << "返回游戏                 ";
 					gotoXY(WIDTH + 2, 12);
 					cout << "退出至主菜单             ";
 					gotoXY(WIDTH + 2, 14);
 					cout << "退出游戏                 ";
-					printFrame(a[i][0], a[i][1], a[i][2], 1);
 					gotoXY(WIDTH + 2, 16);
 					cout << "上、下方向键切换, 回车选择";
+					printFrame(a[prei][0],a[prei][1],a[prei][2],1,true);
+					printFrame(a[i][0],a[i][1],a[i][2],1,false);
 				}
 				else {
 					flag = false;
@@ -228,10 +229,12 @@ bool game(int speed) {		//游戏.
 				if (t == 0 || t == 224 || t == -32) {
 					char c = _getch();
 					if (c == UP) {
+						prei = i;
 						if (i > 0) i--;
 						else	i = 2;
 					}
 					else if (c == DOWN) {
+						prei = i;
 						if (i < 2)	i++;
 						else	i = 0;
 					}
@@ -253,9 +256,10 @@ bool game(int speed) {		//游戏.
 			}
 			pausing = false;
 			system("cls");
-			printMap();
+			printMap(true);
 			printTips();
 		}
+		int bTime = clock();
 		if (head.x == fruit.x && head.y == fruit.y) {
 			eatFruit();
 		}
@@ -267,11 +271,13 @@ bool game(int speed) {		//游戏.
 			if (!move())
 				break;
 		}
-		Sleep(SPEED_MS[speed]);
-		printMap();
+		int t = SPEED_MS[speed] - (clock() - bTime);
+		if(t < 0)	t = 0;
+		Sleep(t);
+		printMap(false);
 		printTips();
 	}
-	printMap();
+	printMap(true);
 	printTips();
 	//游戏结束.
 	gotoXY(0, HIGHT + 1);
@@ -282,12 +288,6 @@ bool game(int speed) {		//游戏.
 	cout << "分数:" << snakeLength + 1 << endl;
 	cout << "速度:" << SPEED_STR[speed] << endl;
 	Sleep(500);
-	if (testSetting.sd) {
-		cout << "游戏玩完了 关机中...";
-		system("shutdown /s /t 100");
-		Sleep(1000);
-		exitGame();
-	}
 	cout << "Y:再来一次 N:结束\n";
 	char c = 32;
 	while (c != 'Y' && c != 'y' && c != 'N' && c != 'n') {
@@ -303,18 +303,25 @@ bool game(int speed) {		//游戏.
 
 short startGameMenu() {
 	system("cls");
-	int f = 0, speed, flag = false;
-	int a[6][2] = { 2,2,8,2,14,2,20,2,26,2,32,8 };
+	int f = 0,pref = 0,speed,flag = false;
+	int a[6][2] = { 1,0,0,0,0,0,0,0,0,4,0,10 };
+	for(int i = 0;i < 4;i++) {
+		if(i != 0)	a[i][0]=a[i-1][0]+SPEED_STR_SZ[i]+2;
+		a[i][1] = SPEED_STR_SZ[i + 1];
+	}
+	a[4][0] = a[3][0] + SPEED_STR_SZ[4] + 2;
+	a[5][0] = a[4][0] + 6;
 	while (1) {
 		if (!flag) {
-			system("cls");
+			gotoXY(0,0);
 			cout << "**********贪吃蛇**********\n";
 			cout << "请选择速度\n\n";
 			cout << ' ' << SPEED_STR[1] << "  " << SPEED_STR[2]
 				<< "  " << SPEED_STR[3] << "  " << SPEED_STR[4]
-				<< "  随机  返回主菜单\n\n";
+				<< "  随机  返回主菜单 \n\n";
 			cout << "左、右方向键切换,回车选择\n";
-			printFrame(3, a[f][0], a[f][1] + 1, 1);
+			printFrame(3,a[pref][0],a[pref][1],1,true);
+			printFrame(3,a[f][0],a[f][1],1,false);
 		} else {
 			flag = false;
 		}
@@ -337,10 +344,12 @@ short startGameMenu() {
 		else {
 			char c2 = _getch();
 			if (c2 == LEFT) {
+				pref = f;
 				if (f == 0)	f = 5;
 				else	f--;
 			}
 			else if (c2 == RIGHT) {
+				pref = f;
 				if (f == 5)	f = 0;
 				else	f++;
 			}
@@ -358,105 +367,43 @@ short startGameMenu() {
 	return speed;
 }
 
-void testSettings() {
-	int f = 0;
-	int a[2][3] = { 2,24,2,4,24,13 };
-	bool flag = false;
-	while (1) {
-		if (!flag) {
-			system("cls");
-			cout << "********实验性********\n\n";
-			cout << "玩完游戏自动关机:";
-			if (testSetting.sd)	cout << "是";
-			else	cout << "否";
-			cout << "    更改\n\n";
-			gotoXY(23, 4);
-			cout << "返回到Debug设置\n\n";
-		}
-		else flag = false;
-		printFrame(a[f][0], a[f][1], a[f][2] + 1, 1);
-		char c1 = _getch();
-		if (c1 != 0 && c1 != 224 && c1 != -32) {
-			if (c1 == 13) {		//回车.
-				system("cls");
-				if (f == 0) {
-					if (testSetting.sd) {
-						testSetting.sd = false;
-						cout << "玩完游戏自动关机已更改为:否\n";
-						Sleep(700);
-						continue;
-					}
-					cout << "确定嘛?(Y/N)";
-					char c2 = _getche();
-					while (c2 != 'Y' && c2 != 'N' && c2 != 'y' && c2 != 'n')	c2 = _getch();
-					if (c2 == 'N' || c2 == 'n')	continue;
-					testSetting.sd = true;
-					cout << "\n危\n";
-					Sleep(700);
-				}
-				else {
-					break;
-				}
-			}
-			else {
-				flag = true;
-				continue;
-			}
-		}
-		else {
-			char c2 = _getch();
-			if (c2 == UP) {
-				if (f == 0)	f = 1;
-				else	f--;
-			}
-			else if (c2 == DOWN) {
-				if (f == 1)	f = 0;
-				else	f++;
-			}
-			else {
-				flag = true;
-				continue;
-			}
-		}
-	}
-}
 void debugSettings() {
-	int f = 0;
-	int a[4][3] = { 2,22,2,4,22,10,6,22,4,8,22,2 };
+	system("cls");
+	int f = 0,pref = 0;
+	int a[3][3] = { 2,21,4,4,21,4,6,21,4 };
 	bool flag = false;
 	while (1) {
-		if (!flag) {
-			system("cls");
+		if(!flag) {
+			gotoXY(0,0);
 			cout << "********Debug设置********\n\n";
 			cout << "蛇头撞蛇身死亡:";
-			if (debugModeSetting.by2345Explorer)	cout << "是";
+			if (debugModeSetting.byIcyLightDream)	cout << "是";
 			else	cout << "否";
-			cout << "    更改  \n\n";
+			cout << "    更改 \n\n";
 			cout << "当前初始长度为:" << debugModeSetting.initTailLength + 1;
 			gotoXY(21, 4);
-			cout << "更改初始长度  \n\n";
-			cout << "实验性";
+			cout << "更改 \n\n";
 			gotoXY(21, 6);
-			cout << "设置\n\n";
-			gotoXY(21, 8);
-			cout << "退出\n\n";
+			cout << "退出 \n\n";
 			cout << "上、下方向键选择, 回车确认 \n";
+			printFrame(a[pref][0],a[pref][1],a[pref][2],1,true);
+			printFrame(a[f][0],a[f][1],a[f][2],1,false);
 		}
 		else flag = false;
-		printFrame(a[f][0], a[f][1], a[f][2] + 1, 1);
 		char c1 = _getch();
-		if (c1 != 0 && c1 != 224 && c1 != -32) {
-			if (c1 == 13) {		//回车.
+		if(c1 != 0 && c1 != 224 && c1 != -32) {
+			if(c1 == 13) {		//回车.
 				system("cls");
-				if (f == 0) {
-					debugModeSetting.by2345Explorer = !debugModeSetting.by2345Explorer;
+				if(f == 0) {
+					debugModeSetting.byIcyLightDream = !debugModeSetting.byIcyLightDream;
 					cout << "蛇头撞蛇身死亡已更改为";
-					if (debugModeSetting.by2345Explorer == true)	cout << "是\n";
+					if (debugModeSetting.byIcyLightDream == true)	cout << "是\n";
 					else	cout << "否\n";
 					cout << "即将回到Debug设置界面...\n";
 					Sleep(700);
+					system("cls");
 				}
-				else if (f == 1) {
+				else if(f == 1) {
 					cout << "请输入要更改的初始长度:";
 					long long t;
 					cin >> t;
@@ -466,9 +413,7 @@ void debugSettings() {
 					debugModeSetting.initTailLength = t;
 					cout << "\n更改成功!即将回到Debug设置界面...";
 					Sleep(700);
-				}
-				else if (f == 2) {
-					testSettings();
+					system("cls");
 				}
 				else {
 					break;
@@ -481,12 +426,14 @@ void debugSettings() {
 		}
 		else {
 			char c2 = _getch();
-			if (c2 == UP) {
-				if (f == 0)	f = 3;
+			if(c2 == UP) {
+				pref = f;
+				if(f == 0)	f = 2;
 				else	f--;
 			}
-			else if (c2 == DOWN) {
-				if (f == 3)	f = 0;
+			else if(c2 == DOWN) {
+				pref = f;
+				if(f == 2)	f = 0;
 				else	f++;
 			}
 			else {
@@ -498,72 +445,77 @@ void debugSettings() {
 }
 
 void settings() {
-	int fx = 0, fy = 0;
-	int a[4][2][3] = { {{2,12,2},{2,20,2}},
-					{{4,12,2},{4,20,2}},
-					{{6,12,2},{6,20,2}},
-					{{8,8,8},{8,20,6}} };
+	system("cls");
+	int fx = 0,fy = 0,prefx = 0,prefy = 0;
+	int a[4][2][3] = { {{2,11,4},{2,19,4}},
+					{{4,11,4},{4,19,4}},
+					{{6,11,4},{6,19,4}},
+					{{8,8,9},{8,19,8}} };
 	bool flag = false;
 	while (1) {
 		if (!flag) {
-			system("cls");
+			gotoXY(0,0);
 			cout << "**********设置***********\n\n";
-			cout << " 蛇头:" << HeadC << "    重置    更改 \n\n";
-			cout << " 蛇身:" << TailC << "    重置    更改 \n\n";
-			cout << " 食物:" << FruitC << "    重置    更改 \n\n";
+			cout << " 蛇头:" << headC << "    重置    更改 \n\n";
+			cout << " 蛇身:" << tailC << "    重置    更改 \n\n";
+			cout << " 食物:" << fruitC << "    重置    更改 \n\n";
 			cout << "        Debug模式  退出设置 \n\n";
 			cout << "上下左右方向键选择, 回车确认\n";
+			printFrame(a[prefx][prefy][0],a[prefx][prefy][1],a[prefx][prefy][2],1,true);
+			printFrame(a[fx][fy][0],a[fx][fy][1],a[fx][fy][2],1,false);
 		}
 		else	flag = false;
-		printFrame(a[fx][fy][0], a[fx][fy][1], a[fx][fy][2] + 1, 1);
 		char c1 = _getch();
 		if (c1 != 0 && c1 != 224 && c1 != -32) {
 			if (c1 == 13) {		//回车.
 				if (fy == 0 && fx < 3) {
 					system("cls");
 					if (fx == 0) {
-						HeadC = '#';
+						headC = '#';
 						cout << "蛇头符号已重置为#\n";
 						cout << "即将回到设置界面...";
 						Sleep(700);
 					}
 					else if (fx == 1) {
-						TailC = '*';
+						tailC = '*';
 						cout << "蛇身符号已重置为*\n";
 						cout << "即将回到设置界面...";
 						Sleep(700);
 					}
 					else {
-						FruitC = '0';
+						fruitC = '0';
 						cout << "食物符号已重置为0\n";
 						cout << "即将回到设置界面...";
 						Sleep(700);
 					}
+					system("cls");
 				}
 				else if (fy == 1) {
 					system("cls");
 					if (fx == 0) {
 						cout << "请输入要更改的蛇头符号:";
-						HeadC = _getche();
+						headC = _getche();
 						cout << "\n更改成功!即将回到设置界面...";
 						Sleep(700);
 					}
 					else if (fx == 1) {
 						cout << "请输入要更改的蛇身符号:";
-						TailC = _getche();
+						tailC = _getche();
 						cout << "\n更改成功!即将回到设置界面...";
 						Sleep(700);
 					}
 					else if (fx == 2) {
 						cout << "请输入要更改的食物符号:";
-						FruitC = _getche();
+						fruitC = _getche();
 						cout << "\n更改成功!即将回到设置界面...";
 						Sleep(700);
 					}
-					else if (fx == 3)	break;
+					else if(fx == 3)	break;
+					system("cls");
 				}
 				else if (fx == 3 && fy == 0) {
 					debugSettings();
+					system("cls");
 				}
 			}
 			else {
@@ -574,18 +526,26 @@ void settings() {
 		else {
 			char c2 = _getch();
 			if (c2 == UP) {
+				prefx = fx;
+				prefy = fy;
 				if (fx == 0)	fx = 3;
 				else	fx--;
 			}
 			else if (c2 == DOWN) {
+				prefx = fx;
+				prefy = fy;
 				if (fx == 3)	fx = 0;
 				else	fx++;
 			}
 			else if (c2 == LEFT) {
+				prefx = fx;
+				prefy = fy;
 				if (fy == 0)	fy = 1;
 				else	fy--;
 			}
 			else if (c2 == RIGHT) {
+				prefx = fx;
+				prefy = fy;
 				if (fy == 1)	fy = 0;
 				else	fy++;
 			}
@@ -605,33 +565,38 @@ void about() {
 	system("pause");
 }
 void startMenu() {		//初始菜单.
-	int f = 0;
+	system("cls");
+	int f = 0,pref = 0;
 	bool flag = false;
-	int a[4][2] = { 2,2,11,2,20,2,29,6 };
-	while (1) {
-		if (!flag) {
-			system("cls");
+	int a[4][2] = { 1,4,10,4,19,4,28,8 };
+	while(1) {
+		if(!flag) {
+			gotoXY(0,0);
 			cout << "**********贪吃蛇**********\n\n";
 			cout << " 开始     设置     关于     退出游戏  \n\n";
 			cout << "左、右方向键切换,回车选择\n";
+			printFrame(2,a[pref][0],a[pref][1],1,true);
+			printFrame(2,a[f][0],a[f][1],1,false);
 		}
 		else	flag = false;
-		printFrame(2, a[f][0], a[f][1] + 1, 1);
-		gotoXY(0, 4);
+		gotoXY(0,4);
 		char c1 = _getch();
-		if (c1 != 0 && c1 != 224 && c1 != -32) {
-			if (c1 == 13) {		//回车.
-				if (f == 0) {
+		if(c1 != 0 && c1 != 224 && c1 != -32) {
+			if(c1 == 13) {		//回车.	
+				if(f == 0) {
 					short t = startGameMenu();
-					if (t != 0)	break;
-					else	continue;
-				}
-				else if (f == 1)
+					if(t != 0)	break;
+					else {
+						system("cls");
+						continue;
+					}
+				} else if(f == 1)
 					settings();
-				else if (f == 2)
+				else if(f == 2)
 					about();
-				else if (f == 3)
-					exit(0);
+				else if(f == 3)
+					exitGame();
+				system("cls");
 			}
 			else {
 				flag = true;
@@ -640,12 +605,14 @@ void startMenu() {		//初始菜单.
 		}
 		else {
 			char c2 = _getch();
-			if (c2 == LEFT) {
-				if (f == 0)	f = 3;
+			if(c2 == LEFT) {
+				pref = f;
+				if(f == 0)	f = 3;
 				else	f--;
 			}
-			else if (c2 == RIGHT) {
-				if (f == 3)	f = 0;
+			else if(c2 == RIGHT) {
+				pref = f;
+				if(f == 3)	f = 0;
 				else	f++;
 			}
 			else {
