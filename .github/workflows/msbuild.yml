@@ -41,7 +41,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: artifact
-        path: /x64/Releases/Snake.exe
+        path: x64/Release/Snake.exe
         if-no-files-found: warn
         retention-days: 0
         compression-level: 6
